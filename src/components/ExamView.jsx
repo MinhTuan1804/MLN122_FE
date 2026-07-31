@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, Flag, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, Send, Play, Sparkles, HelpCircle, ShieldCheck, Timer, FileText, Target, Settings2 } from 'lucide-react';
+import { Clock, Flag, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, Send, Play, Sparkles, HelpCircle, ShieldCheck, Timer, FileText, Target, Settings2, CheckSquare, Check } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -65,11 +65,34 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
     }
   };
 
-  const handleSelectOption = (questionId, key) => {
-    setUserAnswers((prev) => ({
-      ...prev,
-      [questionId]: key,
-    }));
+  const isContentMultiSelect = (content) => {
+    if (!content) return false;
+    const lower = content.toLowerCase();
+    return lower.includes('(chọn') || lower.includes('chọn nhiều') || lower.includes('các phương án');
+  };
+
+  const handleSelectOption = (questionId, key, isMulti) => {
+    setUserAnswers((prev) => {
+      const currentVal = prev[questionId] || '';
+      if (isMulti) {
+        const parts = currentVal ? currentVal.split(',').map((s) => s.trim().toUpperCase()) : [];
+        let newParts;
+        if (parts.includes(key)) {
+          newParts = parts.filter((k) => k !== key);
+        } else {
+          newParts = [...parts, key].sort();
+        }
+        return {
+          ...prev,
+          [questionId]: newParts.join(','),
+        };
+      } else {
+        return {
+          ...prev,
+          [questionId]: key,
+        };
+      }
+    });
   };
 
   const toggleFlag = (questionId) => {
@@ -377,6 +400,11 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
                   <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-bold">
                     Câu {currentIndex + 1} / {totalQuestions}
                   </span>
+                  {isContentMultiSelect(currentQ.content) && (
+                    <span className="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                      <CheckSquare className="w-3.5 h-3.5" /> Chọn nhiều phương án
+                    </span>
+                  )}
                   <span className="text-xs text-slate-400">ID: {currentQ.questionNum}</span>
                 </div>
 
@@ -401,23 +429,30 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
               {/* Options */}
               <div className="space-y-3">
                 {currentQ.options.map((opt) => {
-                  const isSelected = userAnswers[currentQ.id] === opt.key;
+                  const isMulti = isContentMultiSelect(currentQ.content);
+                  const currentAnsVal = userAnswers[currentQ.id] || '';
+                  const selectedParts = currentAnsVal ? currentAnsVal.split(',').map((s) => s.trim().toUpperCase()) : [];
+                  const isSelected = selectedParts.includes(opt.key);
                   return (
                     <button
                       key={opt.id || opt.key}
-                      onClick={() => handleSelectOption(currentQ.id, opt.key)}
+                      onClick={() => handleSelectOption(currentQ.id, opt.key, isMulti)}
                       className={`w-full p-4 rounded-2xl border text-left flex items-start gap-3 transition-all ${
                         isSelected
-                          ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/60 text-blue-900 dark:text-blue-200 ring-2 ring-blue-500/30 font-medium'
+                          ? isMulti
+                            ? 'border-purple-600 bg-purple-50/80 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 ring-2 ring-purple-500/30 font-medium'
+                            : 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/60 text-blue-900 dark:text-blue-200 ring-2 ring-blue-500/30 font-medium'
                           : 'border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       <span className={`w-7 h-7 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
                         isSelected
-                          ? 'bg-blue-600 text-white'
+                          ? isMulti
+                            ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                            : 'bg-blue-600 text-white'
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                       }`}>
-                        {opt.key}
+                        {isSelected && isMulti ? <Check className="w-4 h-4" /> : opt.key}
                       </span>
                       <span className="text-base leading-relaxed">{opt.content}</span>
                     </button>
