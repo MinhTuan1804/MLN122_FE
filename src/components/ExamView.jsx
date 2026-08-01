@@ -65,10 +65,20 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
     }
   };
 
-  const isContentMultiSelect = (content) => {
+  const isQuestionMultiSelect = (q) => {
+    if (!q) return false;
+    if (q.isMultiSelect) return true;
+    const content = q.content || '';
     if (!content) return false;
     const lower = content.toLowerCase();
-    return lower.includes('(chọn') || lower.includes('chọn nhiều') || lower.includes('các phương án');
+    if (lower.includes('đúng nhất') || lower.includes('chọn 1 ') || lower.includes('chọn một')) return false;
+    return (
+      lower.includes('chọn') ||
+      lower.includes('lựa chọn') ||
+      lower.includes('nhiều phương án') ||
+      lower.includes('các phương án') ||
+      lower.includes('đáp án')
+    );
   };
 
   const handleSelectOption = (questionId, key, isMulti) => {
@@ -400,7 +410,7 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
                   <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-bold">
                     Câu {currentIndex + 1} / {totalQuestions}
                   </span>
-                  {isContentMultiSelect(currentQ.content) && (
+                  {isQuestionMultiSelect(currentQ) && (
                     <span className="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-200 dark:border-purple-800 flex items-center gap-1">
                       <CheckSquare className="w-3.5 h-3.5" /> Chọn nhiều phương án
                     </span>
@@ -429,7 +439,7 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
               {/* Options */}
               <div className="space-y-3">
                 {currentQ.options.map((opt) => {
-                  const isMulti = isContentMultiSelect(currentQ.content);
+                  const isMulti = isQuestionMultiSelect(currentQ);
                   const currentAnsVal = userAnswers[currentQ.id] || '';
                   const selectedParts = currentAnsVal ? currentAnsVal.split(',').map((s) => s.trim().toUpperCase()) : [];
                   const isSelected = selectedParts.includes(opt.key);
