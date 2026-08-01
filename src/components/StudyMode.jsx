@@ -24,10 +24,11 @@ export default function StudyMode() {
   // User stats counts for filter badges
   const [counts, setCounts] = useState({ starred: 0, wrong: 0, mastered: 0 });
 
-  // Practice mode state: selectedOptions stores array of keys e.g. ['A', 'B']
+  // Practice mode state
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [isAnswered, setIsAnswered] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [jumpInput, setJumpInput] = useState('');
 
   const { user, openAuthModal } = useAuth();
   const isInitialStateLoaded = useRef(false);
@@ -290,6 +291,17 @@ export default function StudyMode() {
   const isUserAnswerCorrect =
     selectedOptions.length === correctKeys.length &&
     selectedOptions.every((k) => correctKeys.includes(k));
+
+  const handleJumpSubmit = () => {
+    if (jumpInput === '') return;
+    const num = parseInt(jumpInput, 10);
+    if (!isNaN(num) && num >= 1 && num <= questions.length) {
+      setCurrentIndex(num - 1);
+      setSelectedOptions([]);
+      setIsAnswered(false);
+    }
+    setJumpInput('');
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -579,11 +591,29 @@ export default function StudyMode() {
               <ChevronLeft className="w-4 h-4" /> Câu Trước
             </button>
 
-            {/* Question Counter & Reset Answer */}
+            {/* Question Counter & Editable Jump Input */}
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/60">
-                Câu {currentIndex + 1} / {questions.length}
-              </span>
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/60 text-xs font-bold text-slate-600 dark:text-slate-300 shadow-inner">
+                <span>Câu</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={questions.length}
+                  value={jumpInput !== '' ? jumpInput : currentIndex + 1}
+                  onChange={(e) => setJumpInput(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleJumpSubmit();
+                      e.target.blur();
+                    }
+                  }}
+                  onBlur={handleJumpSubmit}
+                  className="w-14 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-1 py-0.5 text-center text-xs font-black text-blue-600 dark:text-blue-400 outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  title="Nhập số câu và ấn Enter để chuyển nhanh"
+                />
+                <span>/ {questions.length}</span>
+              </div>
 
               {isAnswered && (
                 <button
