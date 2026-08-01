@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Search, Star, Layers, CheckCircle2, XCircle, Shuffle, RotateCcw, Sparkles, Flame, Zap, Layers2, BookOpen, AlertCircle, Award, CheckSquare, Check } from 'lucide-react';
+import { Search, Star, Layers, CheckCircle2, XCircle, Shuffle, RotateCcw, Sparkles, Flame, Zap, Layers2, BookOpen, AlertCircle, Award, CheckSquare, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../services/api';
 import FlashcardView from './FlashcardView';
 import { useAuth } from '../context/AuthContext';
@@ -564,38 +564,53 @@ export default function StudyMode() {
             </motion.div>
           )}
 
-          {/* Practice Next Button */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-sm font-medium text-slate-500">
-              Câu {currentIndex + 1} / {questions.length}
-            </span>
+          {/* Practice Mode Navigation Controls */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-slate-100 dark:border-slate-800 mt-6">
+            {/* Previous Question Button */}
+            <button
+              onClick={() => {
+                if (currentIndex > 0) {
+                  setCurrentIndex((prev) => prev - 1);
+                }
+              }}
+              disabled={currentIndex === 0}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-1.5"
+            >
+              <ChevronLeft className="w-4 h-4" /> Câu Trước
+            </button>
 
-            {isAnswered && (
-              <div className="flex items-center gap-2">
+            {/* Question Counter & Reset Answer */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/60">
+                Câu {currentIndex + 1} / {questions.length}
+              </span>
+
+              {isAnswered && (
                 <button
                   onClick={() => {
                     setSelectedOptions([]);
                     setIsAnswered(false);
                   }}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-1"
+                  title="Làm lại câu hỏi này"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" /> Làm Lại Câu Này
+                  <RotateCcw className="w-3.5 h-3.5" /> Làm Lại
                 </button>
+              )}
+            </div>
 
-                {currentIndex < questions.length - 1 ? (
-                  <button
-                    onClick={nextPracticeQuestion}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/25 transition-all text-sm"
-                  >
-                    Câu Tiếp Theo →
-                  </button>
-                ) : (
-                  <span className="px-5 py-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 border border-emerald-300 dark:border-emerald-800">
-                    <CheckCircle2 className="w-4 h-4" /> Đã Hoàn Thành Danh Sách ({questions.length}/{questions.length})
-                  </span>
-                )}
-              </div>
-            )}
+            {/* Next Question Button */}
+            <button
+              onClick={() => {
+                if (currentIndex < questions.length - 1) {
+                  setCurrentIndex((prev) => prev + 1);
+                }
+              }}
+              disabled={currentIndex === questions.length - 1}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs disabled:opacity-30 shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+            >
+              Câu Tiếp Theo <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
 
         </div>
