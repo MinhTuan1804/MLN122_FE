@@ -42,8 +42,8 @@ export default function ExamView({ onExamComplete, onBackToHome }) {
 
   const startNewExam = async () => {
     setLoading(true);
-    const qCount = Math.min(Math.Max(1, parseInt(customQuestionCount) || 60), 539);
-    const tLimit = Math.Max(1, parseInt(customTimeLimitMinutes) || 60);
+    const qCount = Math.min(Math.max(1, parseInt(customQuestionCount) || 60), 539);
+    const tLimit = Math.max(1, parseInt(customTimeLimitMinutes) || 60);
 
     try {
       const res = await api.post('/exam/start', null, {
